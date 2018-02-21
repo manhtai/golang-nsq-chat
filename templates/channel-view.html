@@ -1,0 +1,139 @@
+{{template "before_content"}}
+
+<div class="row">
+     <div class="col">
+          <div class="card">
+               <div class="card-header">
+                    Welcome to channel #{{.channel.Name}}!
+               </div>
+               <div class="card-body chat-area">
+                    <div id="messages"></div>
+               </div>
+          </div>
+          <div class="card">
+               <div class="card-body chat-footer">
+                    <form id="chatbox">
+                         <div class="input-group form-group">
+                              <input type="text" class="form-control" id="body" autocomplete="off">
+                              <span class="input-group-btn">
+                                   <button class="btn btn-primary" type="submit">Send</button>
+                              </span>
+                         </div>
+                    </form>
+               </div>
+          </div>
+     </div>
+</div>
+
+{{block "css" .}}
+<style type="text/css">
+.chat-area {
+     overflow-y: auto;
+     height: 60vh;
+     margin-bottom: 70px;
+}
+
+.chat-footer {
+     position: absolute;
+     bottom: 0;
+     width: 100%;
+}
+
+.message-bubble:nth-child(even) {
+     background-color: #F5F5F5;
+}
+</style>
+{{end}}
+
+{{block "javascript" .}}
+<script  src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script>
+
+$(function(){
+     var socket = null;
+     var msgBox = $("#body");
+     var messages = $("#messages");
+
+     function scrollToBottom() {
+          var height = 0;
+          $('.message-bubble').each(function(i, value){
+              height += parseInt($(this).height()) + 50;
+          });
+          $(".chat-area").animate({ scrollTop: height }, 70);
+     }
+
+     function timePad(t) {
+          return String(t).padStart(2).replace(" ", 0);
+     }
+
+     function formatDate(da) {
+          var d = new Date(da);
+          return timePad(d.getDate())+"/"+timePad(d.getMonth()+1)+"/"+d.getFullYear() +
+               " "+timePad(d.getHours())+":"+timePad(d.getMinutes())+":"+timePad(d.getSeconds());
+     }
+
+     function addMessage(messages, msg, order) {
+          var message = $("<div>").addClass("card-body message-bubble").append(
+               $("<h6>").text(msg.name + " ").addClass("card-title text-muted").append(
+                    $("<small>").text(formatDate(msg.timestamp)).addClass("text-muted"),
+               ),
+               $("<p>").text(msg.body).addClass("card-text")
+          );
+          if (order === 1) {
+               messages.append(message);
+          } else {
+               messages.prepend(message);
+          }
+
+          scrollToBottom();
+     }
+
+     function startWS() {
+          socket = new WebSocket("wss://{{.Host}}/channel/{{.channel.ID.Hex}}/chat");
+          socket.onclose = function() {
+               console.log("Connection has been closed.");
+               checkWS();
+          }
+          socket.onmessage = function(e) {
+               var msg = JSON.parse(e.data);
+               addMessage(messages, msg, 1);
+          }
+     }
+
+     function checkWS(){
+          if(!socket || socket.readyState == WebSocket.CLOSED) startWS();
+     }
+
+     // Load message history
+     $.ajax({
+          url: "//{{.Host}}/channel/{{.channel.ID.Hex}}/history"
+     }).done(function(data) {
+          data.forEach(function(d) {
+               addMessage(messages, d, -1);
+          })
+     });
+
+     // Send messages to WebSocket
+     $("#chatbox").submit(function(){
+          if (!msgBox.val()) return false;
+          if (!socket) {
+               alert("Error: There is no socket connection.");
+               return false;
+          }
+          socket.send(JSON.stringify({ "Body": msgBox.val() }));
+          msgBox.val("");
+          return false;
+     });
+
+     // Receive messages from WebSocket
+     if (!window["WebSocket"]) {
+          alert("Error: Your browser does not support web sockets.");
+     } else {
+          startWS();
+          setInterval(checkWS, 5000);
+     }
+});
+</script>
+{{end}}
+
+{{template "after_content"}}
