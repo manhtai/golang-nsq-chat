@@ -1,2 +1,4 @@
 *.pem
+*.dat
 gin-bin
+vendor/

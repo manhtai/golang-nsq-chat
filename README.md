@@ -30,9 +30,11 @@ mongod
 2. Start nsq
 
 ```sh
-nsqd
 nsqlookupd
+nsqd -lookupd-tcp-address=0.0.0.0:4160
 ```
+
+Export `NSQLOOKUPD_HTTP_ADDRESS` and `NSQD_HTTP_ADDRESS` to corresponding address.
 
 3. Start chat server
 

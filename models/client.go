@@ -50,14 +50,21 @@ func (c *Client) read() {
 
 		// Send to NSQ
 		httpclient := &http.Client{}
-		url := fmt.Sprintf(config.AddrNsqlookupd+"/pub?topic=%s", topicName)
+		url := fmt.Sprintf("http://"+config.AddrNsqd+"/pub?topic=%s",
+			config.TopicName)
 
 		msgJSON, _ := json.Marshal(msg)
-		nsqReq, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(msgJSON)))
+		nsqReq, _ := http.NewRequest("POST", url, bytes.NewBuffer(
+			[]byte(string(msgJSON))))
+
 		nsqResp, err := httpclient.Do(nsqReq)
 
 		if err != nil {
-			log.Println("NSQ publish error: " + err.Error())
+			log.Fatal("NSQ publish error: " + err.Error())
+		}
+
+		if nsqResp.StatusCode != 200 {
+			log.Fatal("Fail to publish to NSQ: ", nsqResp.Status)
 		}
 		defer nsqResp.Body.Close()
 	}

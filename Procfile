@@ -1,1 +1,1 @@
-web: golang-mongodb-chat
+web: golang-nsq-chat

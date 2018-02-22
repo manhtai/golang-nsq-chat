@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/manhtai/golang-mongodb-chat/config"
-	"github.com/manhtai/golang-mongodb-chat/models"
+	"github.com/manhtai/golang-nsq-chat/config"
+	"github.com/manhtai/golang-nsq-chat/models"
 	"gopkg.in/mgo.v2/bson"
 )
 

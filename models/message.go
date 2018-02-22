@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/manhtai/golang-mongodb-chat/config"
+	"github.com/manhtai/golang-nsq-chat/config"
 )
 
 // Message represents a single message which a client sent to a room

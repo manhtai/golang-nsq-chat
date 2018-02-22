@@ -20,7 +20,7 @@
 #  version = "2.4.0"
 
 [metadata.heroku]
-  root-package = "github.com/manhtai/golang-mongodb-chat"
+  root-package = "github.com/manhtai/golang-nsq-chat"
   go-version = "go1.9"
   install = ["."]
   ensure = "true"

@@ -4,15 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"sync"
 
 	nsq "github.com/bitly/go-nsq"
 	"github.com/manhtai/golang-nsq-chat/config"
 )
-
-// We use only 1 topic for our chat server
-const topicName = "Chat"
 
 // ClientsMap holds all clients that subscribed to a NSQ channel
 type ClientsMap map[*Client]bool
@@ -35,25 +31,12 @@ func NewNsqReader(channelName string) (*NsqReader, error) {
 	cfg := nsq.NewConfig()
 	cfg.UserAgent = fmt.Sprintf("go-nsq/%s", nsq.VERSION)
 
-	nsqConsumer, err := nsq.NewConsumer(topicName, channelName, cfg)
+	nsqConsumer, err := nsq.NewConsumer(config.TopicName, channelName, cfg)
 
 	if err != nil {
 		log.Println("nsq.NewNsqReader error: " + err.Error())
 		return nil, err
 	}
-
-	httpclient := &http.Client{}
-	url := fmt.Sprintf(config.AddrNsqlookupd+"/create_topic?topic=%s", topicName)
-	nsqReq, err := http.NewRequest("POST", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	nsqResp, err := httpclient.Do(nsqReq)
-	if err != nil {
-		log.Println("NSQ create topic error: " + err.Error())
-		return nil, err
-	}
-	defer nsqResp.Body.Close()
 
 	nsqReader := &NsqReader{
 		channelName:     channelName,
