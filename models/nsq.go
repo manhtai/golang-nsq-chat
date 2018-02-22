@@ -1,88 +1,56 @@
 package models
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"log"
-	"sync"
+	"os"
 
 	nsq "github.com/bitly/go-nsq"
 	"github.com/manhtai/golang-nsq-chat/config"
 )
 
-// ClientsMap holds all clients that subscribed to a NSQ channel
-type ClientsMap map[*Client]bool
-
-// ChannelsMap holds all NSQ channels that a client subscribed to
-type ChannelsMap map[string]bool
-
 // NsqReader represents a NSQ channel below topic Chat
 type NsqReader struct {
-	channelName     string
-	consumer        *nsq.Consumer
-	muMapsLock      sync.RWMutex
-	channel2clients map[string]ClientsMap
-	client2channels map[*Client]ChannelsMap
+	channelName string
+	consumer    *nsq.Consumer
+	rooms       map[*Room]bool
 }
 
 // NewNsqReader create new NsqReader from a channel name
-func NewNsqReader(channelName string) (*NsqReader, error) {
+func NewNsqReader(r *Room, channelName string) error {
 
 	cfg := nsq.NewConfig()
-	cfg.UserAgent = fmt.Sprintf("go-nsq/%s", nsq.VERSION)
+	cfg.UserAgent = fmt.Sprintf("golang-nsq-chat go-nsq/%s", nsq.VERSION)
 
 	nsqConsumer, err := nsq.NewConsumer(config.TopicName, channelName, cfg)
 
 	if err != nil {
-		log.Println("nsq.NewNsqReader error: " + err.Error())
-		return nil, err
+		log.Println("nsq.NewNsqReader error: ", err)
+		return err
 	}
 
 	nsqReader := &NsqReader{
-		channelName:     channelName,
-		channel2clients: make(map[string]ClientsMap),
-		client2channels: make(map[*Client]ChannelsMap),
+		channelName: channelName,
+		rooms:       map[*Room]bool{r: true},
 	}
+	r.nsqReaders[channelName] = nsqReader
 
 	nsqConsumer.AddHandler(nsqReader)
 
 	nsqErr := nsqConsumer.ConnectToNSQLookupd(config.AddrNsqlookupd)
 	if nsqErr != nil {
-		log.Println("NSQ connection error: " + nsqErr.Error())
-		return nil, err
+		log.Println("NSQ connection error: ", nsqErr)
+		return err
 	}
 	nsqReader.consumer = nsqConsumer
+	log.Printf("Subscribe to NSQ success to channel %s", channelName)
 
-	return nsqReader, nil
+	return nil
 }
 
-// AddClient adds a client to a channel
-func (nr *NsqReader) AddClient(c *Client, channel string) {
-	log.Println("Add client for channel " + channel)
-
-	nr.muMapsLock.Lock()
-	if nr.channel2clients[channel] == nil {
-		nr.channel2clients[channel] = make(ClientsMap)
-	}
-	if nr.client2channels[c] == nil {
-		nr.client2channels[c] = make(ChannelsMap)
-	}
-	nr.channel2clients[channel][c] = true
-	nr.client2channels[c][channel] = true
-	nr.muMapsLock.Unlock()
-}
-
-// RemoveClient removes a client out of a channel
-func (nr *NsqReader) RemoveClient(c *Client) {
-	nr.muMapsLock.Lock()
-	for channel := range nr.client2channels[c] {
-		delete(nr.channel2clients[channel], c)
-	}
-	delete(nr.client2channels, c)
-	nr.muMapsLock.Unlock()
-}
-
-// HandleMessage pushs messages from NSQ to Client, is used by AddHandler() function
+// HandleMessage pushes messages from NSQ to Client, is used by AddHandler() function
 func (nr *NsqReader) HandleMessage(msg *nsq.Message) error {
 	message := Message{}
 	err := json.Unmarshal(msg.Body, &message)
@@ -90,10 +58,29 @@ func (nr *NsqReader) HandleMessage(msg *nsq.Message) error {
 		log.Println("NSQ HandleMessage ERROR: invalid JSON subscribe data")
 		return err
 	}
-	nr.muMapsLock.RLock()
-	for c := range nr.channel2clients[message.Channel] {
-		c.send <- &message
+	for r := range nr.rooms {
+		r.forward <- &message
 	}
-	nr.muMapsLock.RUnlock()
 	return nil
+}
+
+// getChannelName return sha256 hash of Hostname
+func getChannelName() string {
+	hostname, _ := os.Hostname()
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(hostname)))
+}
+
+// subscribeToNsq subscribes Room to a NSQ channel
+func subscribeToNsq(r *Room) {
+	nsqChannelName := getChannelName()
+	_, ok := r.nsqReaders[nsqChannelName]
+
+	if !ok {
+		err := NewNsqReader(r, nsqChannelName)
+		if err != nil {
+			log.Printf("Failed to subscribe to channel: '%s'",
+				nsqChannelName)
+			return
+		}
+	}
 }

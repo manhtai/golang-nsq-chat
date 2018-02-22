@@ -11,51 +11,41 @@ import (
 
 // Room represents a room to chat
 type Room struct {
+	// forward is a channel that holds incoming messages that should be forwarded
+	// to the other clients in the same host
+	forward chan *Message
 	// join is a channel for clients wishing to join the room.
 	join chan *Client
 	// leave is a channel for clients wishing to leave the room.
 	leave chan *Client
 	// clients holds all current clients in this room, decided by join & leave channels
 	clients map[*Client]bool
-	// subscribe is a channel for subscribing to a NSQ channel
-	subscribe chan *Client
 	// nsqReaders holds all NsqTopicReader after subscribing
 	nsqReaders map[string]*NsqReader
 }
 
 // run start a room and run it forever
 func run(r *Room) {
+
 	for {
 		select {
 		case client := <-r.join:
 			// joining
 			r.clients[client] = true
+
 		case client := <-r.leave:
 			// leaving
 			delete(r.clients, client)
-			for channel, reader := range client.subscribed {
-				log.Println("Delete client on channel: " + channel)
-				reader.RemoveClient(client)
-			}
 			close(client.send)
-		case client := <-r.subscribe:
-			nsqChannelName := client.channel
-			reader, readerExists := r.nsqReaders[nsqChannelName]
 
-			if !readerExists {
-				var err error
-				reader, err = NewNsqReader(nsqChannelName)
-				if err != nil {
-					log.Printf("Failed to subscribe to channel: '%s'",
-						nsqChannelName)
-					break
-				}
+		case msg := <-r.forward:
+			// forward message to all clients
+			for client := range r.clients {
+				log.Print("Send message away...")
+				client.send <- msg
 			}
-			client.subscribed[nsqChannelName] = reader
-			r.nsqReaders[nsqChannelName] = reader
-
-			reader.AddClient(client, nsqChannelName)
 		}
+
 	}
 }
 
@@ -64,11 +54,14 @@ func NewRoomChan() *Room {
 	r := &Room{
 		join:       make(chan *Client),
 		leave:      make(chan *Client),
-		subscribe:  make(chan *Client),
+		forward:    make(chan *Message),
 		clients:    make(map[*Client]bool),
 		nsqReaders: make(map[string]*NsqReader),
 	}
 	go run(r)
+	// We subscribe the Room to the NSQ Channel in order to
+	// receive messages from NSQ later
+	subscribeToNsq(r)
 	return r
 }
 
@@ -105,18 +98,13 @@ func RoomChat(r *Room) http.HandlerFunc {
 
 		// Create new Client for this connection & join it to the Room
 		client := &Client{
-			socket:     socket,
-			send:       make(chan *Message, messageBufferSize),
-			room:       r,
-			user:       user,
-			channel:    vars["id"],
-			subscribed: make(map[string]*NsqReader),
+			socket:  socket,
+			send:    make(chan *Message, messageBufferSize),
+			room:    r,
+			user:    user,
+			channel: vars["id"],
 		}
 		r.join <- client
-
-		// We also subscribe to the NSQ Channel for the Room in order to receive
-		// messages from NSQ later
-		r.subscribe <- client
 
 		defer func() {
 			r.leave <- client

@@ -44,6 +44,8 @@ func main() {
 	// The rest, just not found
 	router.HandleFunc("/*", http.NotFound)
 
-	log.Println("Starting web server on", port)
+	hostName, _ := os.Hostname()
+
+	log.Printf("Starting web server %s:%d on port%s", hostName, os.Getpid(), port)
 	log.Fatal(http.ListenAndServe(port, router))
 }

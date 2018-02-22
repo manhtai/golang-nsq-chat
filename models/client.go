@@ -16,21 +16,14 @@ import (
 // so it should not be the same as user
 type Client struct {
 	channel string
-
 	// socket is the web socket for this client.
 	socket *websocket.Conn
-
 	// send is a channel on which messages are sent.
 	send chan *Message
-
 	// room is the room this client is chatting in.
 	room *Room
-
 	// user uses this client to chat
 	user *User
-
-	// NsqReader that the client subscribed to
-	subscribed map[string]*NsqReader
 }
 
 func (c *Client) read() {
@@ -39,7 +32,7 @@ func (c *Client) read() {
 		var msg *Message
 		err := c.socket.ReadJSON(&msg)
 		if err != nil {
-			log.Print(err)
+			log.Print("Error when reading message from Websocket: ", err)
 			return
 		}
 
@@ -60,12 +53,14 @@ func (c *Client) read() {
 		nsqResp, err := httpclient.Do(nsqReq)
 
 		if err != nil {
-			log.Fatal("NSQ publish error: " + err.Error())
+			log.Fatal("NSQ publish error: ", err)
 		}
 
 		if nsqResp.StatusCode != 200 {
 			log.Fatal("Fail to publish to NSQ: ", nsqResp.Status)
 		}
+
+		log.Print("Send messages to NSQ success...")
 		defer nsqResp.Body.Close()
 	}
 }
@@ -73,6 +68,12 @@ func (c *Client) read() {
 func (c *Client) write() {
 	defer c.socket.Close()
 	for msg := range c.send {
+		log.Print("Start to write message to WS...")
+		// Drop messages if it's not the same channel
+		if c.channel != msg.Channel {
+			log.Print("Drop messages...")
+			continue
+		}
 		err := c.socket.WriteJSON(msg)
 		if err != nil {
 			return
