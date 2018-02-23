@@ -70,15 +70,14 @@ func (nr *NsqReader) HandleMessage(msg *nsq.Message) error {
 func getChannelName() string {
 	hostname, err := os.Hostname()
 	if err != nil {
-		hostname = "Undefined"
+		hostname = "undefined"
 	}
+	hostname = "websocket-server-" + hostname
 
 	maxLength := len(hostname)
 	if maxLength > 63 {
 		maxLength = 63
 	}
-
-	hostname = "websocket-server-" + hostname
 
 	return hostname[0:maxLength]
 }
