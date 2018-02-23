@@ -71,11 +71,10 @@ go build ./pkg/cmd/chat
 ## Generate cert.pem & key.pem
 
 ```sh
-go get github.com/codegangsta/gin
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout key.pem -out cert.pem
 ```
 
-## Live-reload
+## Live reload
 
 ```
 go get https://github.com/Unknwon/bra
