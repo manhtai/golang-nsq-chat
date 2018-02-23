@@ -21,6 +21,6 @@
 
 [metadata.heroku]
   root-package = "github.com/manhtai/golang-nsq-chat"
-  go-version = "go1.9"
-  install = ["."]
+  go-version = "go1.10"
+  install = ["./pkg/cmd/chat"]
   ensure = "true"

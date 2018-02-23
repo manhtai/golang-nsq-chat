@@ -1,1 +1,1 @@
-web: golang-nsq-chat
+web: chat
