@@ -1,7 +1,6 @@
 package models
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -67,10 +66,21 @@ func (nr *NsqReader) HandleMessage(msg *nsq.Message) error {
 	return nil
 }
 
-// getChannelName return sha256 hash of Hostname
+// getChannelName return hostname of our chat server
 func getChannelName() string {
-	hostname, _ := os.Hostname()
-	return fmt.Sprintf("%x", sha256.Sum256([]byte(hostname)))
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "Undefined"
+	}
+
+	maxLength := len(hostname)
+	if maxLength > 63 {
+		maxLength = 63
+	}
+
+	hostname = "websocket-server-" + hostname
+
+	return hostname[0:maxLength]
 }
 
 // subscribeToNsq subscribes Room to a NSQ channel
