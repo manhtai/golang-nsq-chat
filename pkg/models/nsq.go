@@ -8,7 +8,7 @@ import (
 	"time"
 
 	nsq "github.com/bitly/go-nsq"
-	"github.com/manhtai/golang-nsq-chat/config"
+	"github.com/manhtai/golang-nsq-chat/pkg/config"
 )
 
 // NsqReader represents a NSQ channel below topic Chat

@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/manhtai/golang-nsq-chat/config"
-	"github.com/manhtai/golang-nsq-chat/models"
+	"github.com/manhtai/golang-nsq-chat/pkg/config"
+	"github.com/manhtai/golang-nsq-chat/pkg/models"
 	"gopkg.in/mgo.v2/bson"
 
 	"fmt"

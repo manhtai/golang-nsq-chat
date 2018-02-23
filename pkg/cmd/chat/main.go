@@ -1,21 +1,24 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/manhtai/golang-nsq-chat/controllers"
-	"github.com/manhtai/golang-nsq-chat/models"
+	"github.com/manhtai/golang-nsq-chat/pkg/controllers"
+	"github.com/manhtai/golang-nsq-chat/pkg/models"
+)
+
+var (
+	addr     = flag.String("addr", ":3000", "http service address")
+	certFile = flag.String("cert-file", "cert.pem", "cert file")
+	keyFile  = flag.String("key-file", "key.pem", "key file")
 )
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Fatalf("PORT must be set!")
-	}
-	port = ":" + port
+	flag.Parse()
 
 	r := models.NewRoomChan()
 
@@ -46,6 +49,6 @@ func main() {
 
 	hostName, _ := os.Hostname()
 
-	log.Printf("Starting web server %s:%d on port%s", hostName, os.Getpid(), port)
-	log.Fatal(http.ListenAndServe(port, router))
+	log.Printf("Starting web server %s:%d on %s", hostName, os.Getpid(), *addr)
+	log.Fatal(http.ListenAndServeTLS(*addr, *certFile, *keyFile, router))
 }

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/manhtai/golang-nsq-chat/config"
+	"github.com/manhtai/golang-nsq-chat/pkg/config"
 )
 
 // Client represents a user connect to a room, one user may have many devices to chat,

@@ -6,5 +6,5 @@ import "html/template"
 var Templ *template.Template
 
 func init() {
-	Templ = template.Must(template.ParseGlob("templates/*.html"))
+	Templ = template.Must(template.ParseGlob("pkg/templates/*.html"))
 }

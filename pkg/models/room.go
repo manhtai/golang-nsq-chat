@@ -6,7 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/manhtai/golang-nsq-chat/config"
+	"github.com/manhtai/golang-nsq-chat/pkg/config"
 )
 
 // Room represents a room to chat

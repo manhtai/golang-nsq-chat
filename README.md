@@ -28,12 +28,12 @@ The app contains 3 parts:
 |_____________|                                                        |
        |                                                               |
        |            _________________              .----> Client 1 --->|
-       |           |     Server1     | Go channel  |                   |
+       |           |     Server1     | Go channels |                   |
        |---------->|   NSQ channel   |------------>|----> Client 2 --->|
        |           |_________________|             |                   |
        |                                           '----> Client 3 --->|
        |            _________________
-       |           |     Server2     | Go channel
+       |           |     Server2     | Go channels
        |---------->|   NSQ channel   |------------> ...
        |           |_________________|
        |
@@ -64,13 +64,20 @@ Export `NSQLOOKUPD_HTTP_ADDRESS` and `NSQD_HTTP_ADDRESS` to corresponding addres
 ```sh
 go get github.com/manhtai/golang-nsq-chat
 dep ensure
-go run main.go
+go build ./pkg/cmd/chat
+./chat -cert-file=cert.pem -key-file=key.pem
 ```
 
-## SSL & Live reload support
+## Generate cert.pem & key.pem
 
 ```sh
 go get github.com/codegangsta/gin
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout key.pem -out cert.pem
-gin --certFile cert.pem --keyFile key.pem --all main.go
+```
+
+## Live-reload
+
+```
+go get https://github.com/Unknwon/bra
+Bra run
 ```

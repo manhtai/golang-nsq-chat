@@ -1,4 +1,4 @@
 *.pem
 *.dat
-gin-bin
+chat
 vendor/
