@@ -7,15 +7,25 @@ import (
 	"os"
 )
 
-// AddrNsqlookupd holds address for nsqlookupd
-// TODO: Support multiple lookupd addresses
-var AddrNsqlookupd string
+var (
+	// AddrNsqlookupd holds address for nsqlookupd
+	// TODO: Support multiple lookupd addresses
+	AddrNsqlookupd string
 
-// AddrNsqd uses for publishing messages only, it should be your local nsqd
-var AddrNsqd string
+	// AddrNsqd uses for publishing messages only, it should be your local nsqd
+	AddrNsqd string
+)
 
-// TopicName is NSQ topic name for our chat server
-const TopicName = "Chat"
+const (
+	// TopicName is NSQ topic name for our chat server
+	TopicName = "Chat"
+
+	// MaxInFlight is largest number of messages allowed in flight
+	MaxInFlight = 10
+
+	// LookupdPollInterval is interval for polling NSQ for new messages
+	LookupdPollInterval = 30
+)
 
 func init() {
 	AddrNsqlookupd = os.Getenv("NSQLOOKUPD_HTTP_ADDRESS")

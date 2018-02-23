@@ -14,10 +14,33 @@ The app contains 3 parts:
 
 > These are responsible for opening Websocket connection to receive messages
 > from user, send to NSQ, get messages from NSQ and broadcast to all clients
-> in a specific channel.
+> in a specific Room.
 
-- NSQ structs: keep track of NSQ
+- NSQ structs: NsqReader
 
+> This struct keep track of NSQ consumer corresponding to each Room in one NSQ
+> channel.
+
+```
+ _____________
+|   "Chat"    |                  Pub to "Chat" topic
+|    Topic    |<-------------------------------------------------------.
+|_____________|                                                        |
+       |                                                               |
+       |            _________________              .----> Client 1 --->|
+       |           |     Server1     | Go channel  |                   |
+       |---------->|   NSQ channel   |------------>|----> Client 2 --->|
+       |           |_________________|             |                   |
+       |                                           '----> Client 3 --->|
+       |            _________________
+       |           |     Server2     | Go channel
+       |---------->|   NSQ channel   |------------> ...
+       |           |_________________|
+       |
+       |
+       ...
+
+```
 
 ## Get started
 

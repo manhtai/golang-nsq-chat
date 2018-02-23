@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	nsq "github.com/bitly/go-nsq"
 	"github.com/manhtai/golang-nsq-chat/config"
@@ -22,6 +23,8 @@ type NsqReader struct {
 func NewNsqReader(r *Room, channelName string) error {
 
 	cfg := nsq.NewConfig()
+	cfg.Set("LookupdPollInterval", config.LookupdPollInterval*time.Second)
+	cfg.Set("MaxInFlight", config.MaxInFlight)
 	cfg.UserAgent = fmt.Sprintf("golang-nsq-chat go-nsq/%s", nsq.VERSION)
 
 	nsqConsumer, err := nsq.NewConsumer(config.TopicName, channelName, cfg)

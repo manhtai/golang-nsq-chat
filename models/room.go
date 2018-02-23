@@ -41,7 +41,6 @@ func run(r *Room) {
 		case msg := <-r.forward:
 			// forward message to all clients
 			for client := range r.clients {
-				log.Print("Send message away...")
 				client.send <- msg
 			}
 		}
@@ -65,20 +64,14 @@ func NewRoomChan() *Room {
 	return r
 }
 
-const (
-	socketBufferSize  = 1024
-	messageBufferSize = 256
-)
-
-var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize,
-	WriteBufferSize: socketBufferSize}
-
 // RoomChat take a room, return a HandlerFunc,
 // responsible for send & receive websocket data for all channels
 func RoomChat(r *Room) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 
 		vars := mux.Vars(req)
+		upgrader := &websocket.Upgrader{ReadBufferSize: config.SocketBufferSize,
+			WriteBufferSize: config.SocketBufferSize}
 
 		socket, err := upgrader.Upgrade(w, req, nil)
 		if err != nil {
@@ -99,7 +92,7 @@ func RoomChat(r *Room) http.HandlerFunc {
 		// Create new Client for this connection & join it to the Room
 		client := &Client{
 			socket:  socket,
-			send:    make(chan *Message, messageBufferSize),
+			send:    make(chan *Message, config.MessageBufferSize),
 			room:    r,
 			user:    user,
 			channel: vars["id"],
