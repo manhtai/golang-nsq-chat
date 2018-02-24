@@ -7,7 +7,7 @@ The app contains 2 parts:
 
 - Chat server: Responsible for receiving & sending messages between clients.
 
-- Archive daemon: Listen for Archive channel & save messages to Mongodb
+- Archive daemon: Listen for Archive channel & save messages to Mongodb.
 
 ```
  _____________
