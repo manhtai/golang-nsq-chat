@@ -60,7 +60,6 @@ func (c *Client) read() {
 			log.Fatal("Fail to publish to NSQ: ", nsqResp.Status)
 		}
 
-		log.Print("Send messages to NSQ success...")
 		defer nsqResp.Body.Close()
 	}
 }
@@ -68,10 +67,8 @@ func (c *Client) read() {
 func (c *Client) write() {
 	defer c.socket.Close()
 	for msg := range c.send {
-		log.Print("Start to write message to WS...")
 		// Drop messages if it's not the same channel
 		if c.channel != msg.Channel {
-			log.Print("Drop messages...")
 			continue
 		}
 		err := c.socket.WriteJSON(msg)

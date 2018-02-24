@@ -3,23 +3,11 @@ A toy chat app
 
 ## Overview
 
-The app contains 3 parts:
+The app contains 2 parts:
 
-- Persistent structs: User, Channel, Message
+- Chat server: Responsible for receiving & sending messages between clients.
 
-> These models holds information about User, Channel & Message from channels
-> when user send messages, data is saved to Mongodb.
-
-- Websocket structs: Client, Room
-
-> These are responsible for opening Websocket connection to receive messages
-> from user, send to NSQ, get messages from NSQ and broadcast to all clients
-> in a specific Room.
-
-- NSQ structs: NsqReader
-
-> This struct keep track of NSQ consumer corresponding to each Room in one NSQ
-> channel.
+- Archive daemon: Listen for Archive channel & save messages to Mongodb
 
 ```
  _____________
@@ -39,6 +27,10 @@ The app contains 3 parts:
        |
        |
        ...
+       |            _________________
+       |           |     Archive     |             .---------.
+       |---------->|   NSQ channel   |------------>| Mongodb |
+                   |_________________|             |_________|
 
 ```
 
@@ -59,13 +51,27 @@ nsqd -lookupd-tcp-address=0.0.0.0:4160
 
 Export `NSQLOOKUPD_HTTP_ADDRESS` and `NSQD_HTTP_ADDRESS` to corresponding address.
 
-3. Start chat server
+3. Build
 
 ```sh
 go get github.com/manhtai/golang-nsq-chat
 dep ensure
 go build ./pkg/cmd/chat
-./chat -cert-file=cert.pem -key-file=key.pem
+go build ./pkg/cmd/archive
+```
+
+4. Run
+
+- Chat server
+
+```sh
+./chat
+```
+
+- Archive daemon
+
+```sh
+./archive
 ```
 
 ## Generate cert.pem & key.pem
@@ -74,7 +80,7 @@ go build ./pkg/cmd/chat
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout key.pem -out cert.pem
 ```
 
-## Live reload
+## Live reload for Chat server
 
 ```
 go get https://github.com/Unknwon/bra

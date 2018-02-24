@@ -25,6 +25,9 @@ const (
 
 	// LookupdPollInterval is interval for polling NSQ for new messages
 	LookupdPollInterval = 30
+
+	// ArchiveChannelName is the name of Archive Channel
+	ArchiveChannelName = "Archive"
 )
 
 func init() {

@@ -18,18 +18,18 @@ type NsqReader struct {
 	rooms       map[*Room]bool
 }
 
-// NewNsqReader create new NsqReader from a channel name
-func NewNsqReader(r *Room, channelName string) error {
+// newNsqReader create new NsqReader from a channel name
+func newNsqReader(r *Room, channelName string) error {
 
 	cfg := nsq.NewConfig()
 	cfg.Set("LookupdPollInterval", config.LookupdPollInterval*time.Second)
 	cfg.Set("MaxInFlight", config.MaxInFlight)
-	cfg.UserAgent = fmt.Sprintf("golang-nsq-chat go-nsq/%s", nsq.VERSION)
+	cfg.UserAgent = fmt.Sprintf("Chat client go-nsq/%s", nsq.VERSION)
 
 	nsqConsumer, err := nsq.NewConsumer(config.TopicName, channelName, cfg)
 
 	if err != nil {
-		log.Println("nsq.NewNsqReader error: ", err)
+		log.Println("Create newNsqReader error: ", err)
 		return err
 	}
 
@@ -88,7 +88,7 @@ func subscribeToNsq(r *Room) {
 	_, ok := r.nsqReaders[nsqChannelName]
 
 	if !ok {
-		err := NewNsqReader(r, nsqChannelName)
+		err := newNsqReader(r, nsqChannelName)
 		if err != nil {
 			log.Printf("Failed to subscribe to channel: '%s'",
 				nsqChannelName)
