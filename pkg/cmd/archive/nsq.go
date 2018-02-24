@@ -8,7 +8,7 @@ import (
 
 	nsq "github.com/bitly/go-nsq"
 	"github.com/manhtai/golang-nsq-chat/pkg/config"
-	"github.com/manhtai/golang-zeromq-chat/models"
+	"github.com/manhtai/golang-nsq-chat/pkg/models"
 )
 
 // subscribeToNsq subscribe to NSQ Archive channel
