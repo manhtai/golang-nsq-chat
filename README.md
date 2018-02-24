@@ -65,9 +65,9 @@ Export `NSQLOOKUPD_HTTP_ADDRESS` and `NSQD_HTTP_ADDRESS` to corresponding addres
 ```sh
 go get github.com/manhtai/golang-nsq-chat
 dep ensure
-go build ./pkg/cmd/chat
-go build ./pkg/cmd/archive
-go build ./pkg/cmd/bot
+go build ./cmd/chat
+go build ./cmd/archive
+go build ./cmd/bot
 ```
 
 4. Run
