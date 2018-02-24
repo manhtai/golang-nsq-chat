@@ -1,13 +1,18 @@
 A toy chat app
 ==============
 
+This project takes ideas from [NSQ-Centric Architecture (GoCon Autumn 2014)][1]
+slide.
+
 ## Overview
 
-The app contains 2 parts:
+The app contains these parts, but you can add as many as you want:
 
 - Chat server: Responsible for receiving & sending messages between clients.
 
 - Archive daemon: Listen for Archive channel & save messages to Mongodb.
+
+- Bot daemon: Listen for Bot channel, do some analysis, then reply.
 
 ```
  _____________
@@ -20,17 +25,21 @@ The app contains 2 parts:
        |---------->|   NSQ channel   |------------>|----> Client 2 --->|
        |           |_________________|             |                   |
        |                                           '----> Client 3 --->|
-       |            _________________
-       |           |     Server2     | Go channels
-       |---------->|   NSQ channel   |------------> ...
-       |           |_________________|
-       |
-       |
-       ...
-       |            _________________
-       |           |     Archive     |             .---------.
-       |---------->|   NSQ channel   |------------>| Mongodb |
-                   |_________________|             |_________|
+       |            _________________                                  |
+       |           |     Server2     | Go channels                     |
+       |---------->|   NSQ channel   |------------> ...                |
+       |           |_________________|                                 |
+       |                                                               |
+       |                                                               |
+       ...                                                             |
+       |            _________________                                  |
+       |           |     Archive     |             .---------.         |
+       |---------->|   NSQ channel   |------------>| Mongodb |         |
+       |           |_________________|             |_________|         |
+       |            _________________                                  |
+       |           |       Bot       |             .---------------.   |
+       |---------->|   NSQ channel   |------------>| NLP, commands |-->|
+                   |_________________|             |_______________|
 
 ```
 
@@ -58,6 +67,7 @@ go get github.com/manhtai/golang-nsq-chat
 dep ensure
 go build ./pkg/cmd/chat
 go build ./pkg/cmd/archive
+go build ./pkg/cmd/bot
 ```
 
 4. Run
@@ -74,6 +84,12 @@ go build ./pkg/cmd/archive
 ./archive
 ```
 
+- Bot daemon
+
+```sh
+./bot
+```
+
 ## Generate cert.pem & key.pem
 
 ```sh
@@ -86,3 +102,6 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout key.pem -out cert.pe
 go get https://github.com/Unknwon/bra
 Bra run
 ```
+
+
+[1]: https://www.slideshare.net/guregu/nsqcentric-architecture-gocon-autumn-2014

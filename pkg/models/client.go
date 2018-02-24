@@ -1,11 +1,7 @@
 package models
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -41,26 +37,7 @@ func (c *Client) read() {
 		msg.User = c.user.ID
 		msg.Timestamp = time.Now()
 
-		// Send to NSQ
-		httpclient := &http.Client{}
-		url := fmt.Sprintf("http://"+config.AddrNsqd+"/pub?topic=%s",
-			config.TopicName)
-
-		msgJSON, _ := json.Marshal(msg)
-		nsqReq, _ := http.NewRequest("POST", url, bytes.NewBuffer(
-			[]byte(string(msgJSON))))
-
-		nsqResp, err := httpclient.Do(nsqReq)
-
-		if err != nil {
-			log.Fatal("NSQ publish error: ", err)
-		}
-
-		if nsqResp.StatusCode != 200 {
-			log.Fatal("Fail to publish to NSQ: ", nsqResp.Status)
-		}
-
-		defer nsqResp.Body.Close()
+		SendMessageToTopic(config.TopicName, msg)
 	}
 }
 

@@ -1,9 +1,12 @@
 package models
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
@@ -83,7 +86,7 @@ func getChannelName() string {
 }
 
 // subscribeToNsq subscribes Room to a NSQ channel
-func subscribeToNsq(r *Room) {
+func subscribeToNsq(r *Room) error {
 	nsqChannelName := getChannelName()
 	_, ok := r.nsqReaders[nsqChannelName]
 
@@ -92,7 +95,33 @@ func subscribeToNsq(r *Room) {
 		if err != nil {
 			log.Printf("Failed to subscribe to channel: '%s'",
 				nsqChannelName)
-			return
+			return err
 		}
 	}
+	return nil
+}
+
+// SendMessageToTopic send Message to NSQ topic
+func SendMessageToTopic(topicName string, message *Message) error {
+	httpclient := &http.Client{}
+	url := fmt.Sprintf("http://"+config.AddrNsqd+"/pub?topic=%s", topicName)
+
+	msgJSON, _ := json.Marshal(message)
+	nsqReq, _ := http.NewRequest("POST", url, bytes.NewBuffer(
+		[]byte(string(msgJSON))))
+
+	nsqResp, err := httpclient.Do(nsqReq)
+
+	if err != nil {
+		log.Print("NSQ publish error: ", err)
+		return err
+	}
+	defer nsqResp.Body.Close()
+
+	if nsqResp.StatusCode != 200 {
+		log.Print("Fail to publish to NSQ: ", nsqResp.Status)
+		return errors.New("Send message to NSQ fail: " + nsqResp.Status)
+	}
+
+	return nil
 }

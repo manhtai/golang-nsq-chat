@@ -28,6 +28,9 @@ const (
 
 	// ArchiveChannelName is the name of Archive Channel
 	ArchiveChannelName = "Archive"
+
+	// BotChannelName is the name of Bot Channel
+	BotChannelName = "Bot"
 )
 
 func init() {
