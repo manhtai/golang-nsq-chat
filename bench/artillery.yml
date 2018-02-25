@@ -5,8 +5,8 @@ config:
     headers:
       Cookie: 'session=MTUxOTU0MTkzNHxOd3dBTkZsYVVqSlVOVXhhTmxoVk5FOVZTa28xU1ZOSFdVbERUMVZDVGtaTVVUTklSa2RUVWxKWVVFVldNek5ZVUZsVVR6WTFWa0U9fEpvXLOIzORpE2LQWsqFxxDgTR-RcOkZNmew-WdSubKp'
   phases:
-    - duration: 10
-      arrivalRate: 60000
+    - duration: 60
+      arrivalRate: 6000
 scenarios:
   - engine: "ws"
     flow:
