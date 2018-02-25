@@ -22,9 +22,12 @@ func init() {
 	}
 	Mgo = session
 
+	// Set safe to receive errors back
+	Mgo.SetSafe(&mgo.Safe{WMode: "majority"})
+
 	// Ensure some Index
-	err = session.DB("").C("messages").EnsureIndexKey("channel", "timestamp")
+	err = Mgo.DB("").C("messages").EnsureIndexKey("channel", "timestamp")
 	if err != nil {
-		log.Print(err)
+		log.Print("Error when ensure index: ", err)
 	}
 }

@@ -1,0 +1,14 @@
+config:
+  target: 'wss://localhost:3000/channel/5a8d2d81e1054e3527ceb914/chat'
+  ws:
+    rejectUnauthorized: false
+    headers:
+      Cookie: 'session=MTUxOTU0MTkzNHxOd3dBTkZsYVVqSlVOVXhhTmxoVk5FOVZTa28xU1ZOSFdVbERUMVZDVGtaTVVUTklSa2RUVWxKWVVFVldNek5ZVUZsVVR6WTFWa0U9fEpvXLOIzORpE2LQWsqFxxDgTR-RcOkZNmew-WdSubKp'
+  phases:
+    - duration: 10
+      arrivalRate: 60000
+scenarios:
+  - engine: "ws"
+    flow:
+      - send: '{"Body": "hello"}'
+      - think: 100
