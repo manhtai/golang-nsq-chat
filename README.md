@@ -54,20 +54,18 @@ mongod
 2. Start nsq
 
 ```sh
-nsqlookupd
-nsqd -lookupd-tcp-address=0.0.0.0:4160
+docker-compose up -d
+
+export NSQLOOKUPD_HTTP_ADDRESS=0.0.0.0:4161
+export NSQD_HTTP_ADDRESS=0.0.0.0:4151
 ```
 
-Export `NSQLOOKUPD_HTTP_ADDRESS` and `NSQD_HTTP_ADDRESS` to corresponding address.
-
-3. Build
+3. Get & Build
 
 ```sh
-go get github.com/manhtai/golang-nsq-chat
-dep ensure
-go build ./cmd/chat
-go build ./cmd/archive
-go build ./cmd/bot
+go get github.com/manhtai/golang-nsq-chat/cmd/chat
+go get github.com/manhtai/golang-nsq-chat/cmd/archive
+go get github.com/manhtai/golang-nsq-chat/cmd/bot
 ```
 
 4. Run

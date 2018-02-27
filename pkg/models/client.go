@@ -1,7 +1,6 @@
 package models
 
 import (
-	"log"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -23,12 +22,21 @@ type Client struct {
 }
 
 func (c *Client) read() {
-	defer c.socket.Close()
+	defer func() {
+		c.room.leave <- c
+		c.socket.Close()
+	}()
+
+	c.socket.SetReadLimit(config.MaxMessageSize)
+	c.socket.SetReadDeadline(time.Now().Add(config.PongWait))
+	c.socket.SetPongHandler(func(string) error {
+		c.socket.SetReadDeadline(time.Now().Add(config.PongWait))
+		return nil
+	})
+
 	for {
 		var msg *Message
-		err := c.socket.ReadJSON(&msg)
-		if err != nil {
-			log.Print("Error when reading message from Websocket: ", err)
+		if err := c.socket.ReadJSON(&msg); err != nil {
 			return
 		}
 
@@ -42,15 +50,36 @@ func (c *Client) read() {
 }
 
 func (c *Client) write() {
-	defer c.socket.Close()
-	for msg := range c.send {
-		// Drop messages if it's not the same channel
-		if c.channel != msg.Channel {
-			continue
-		}
-		err := c.socket.WriteJSON(msg)
-		if err != nil {
-			return
+	ticker := time.NewTicker(config.PingPeriod)
+
+	defer func() {
+		c.socket.Close()
+		ticker.Stop()
+	}()
+
+	for {
+		select {
+		case msg, ok := <-c.send:
+			if !ok {
+				c.socket.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+
+			// Drop messages if it's not the same channel
+			if c.channel != msg.Channel {
+				continue
+			}
+			if err := c.socket.WriteJSON(msg); err != nil {
+				return
+			}
+
+		case <-ticker.C:
+			c.socket.SetWriteDeadline(time.Now().Add(config.WriteWait))
+			if err := c.socket.WriteMessage(websocket.PingMessage,
+				[]byte{}); err != nil {
+				return
+			}
 		}
 	}
+
 }

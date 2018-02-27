@@ -3,7 +3,6 @@ package models
 import (
 	"log"
 	"net/http"
-	"sync"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -21,29 +20,24 @@ type Room struct {
 	leave chan *Client
 	// clients holds all current clients in this room, decided by join & leave channels
 	clients map[*Client]bool
-	// muMapsLock prevent race when client join & leave
-	muMapsLock sync.RWMutex
 	// nsqReaders holds all NsqTopicReader after subscribing
 	nsqReaders map[string]*NsqReader
 }
 
 // run start a room and run it forever
 func run(r *Room) {
-
 	for {
 		select {
 		case client := <-r.join:
 			// joining
-			r.muMapsLock.Lock()
 			r.clients[client] = true
-			r.muMapsLock.Unlock()
 
 		case client := <-r.leave:
-			// leaving
-			r.muMapsLock.Lock()
-			delete(r.clients, client)
-			close(client.send)
-			r.muMapsLock.Unlock()
+			if _, ok := r.clients[client]; ok {
+				// leaving
+				close(client.send)
+				delete(r.clients, client)
+			}
 
 		case msg := <-r.forward:
 			// forward message to all clients
