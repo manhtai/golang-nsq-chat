@@ -73,19 +73,19 @@ go get github.com/manhtai/golang-nsq-chat/cmd/bot
 - Chat server
 
 ```sh
-./chat
+chat
 ```
 
 - Archive daemon
 
 ```sh
-./archive
+archive
 ```
 
 - Bot daemon
 
 ```sh
-./bot
+bot
 ```
 
 ## Generate cert.pem & key.pem
