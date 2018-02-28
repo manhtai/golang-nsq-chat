@@ -1,10 +1,12 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/manhtai/golang-nsq-chat/pkg/controllers"
@@ -50,5 +52,23 @@ func main() {
 	hostName, _ := os.Hostname()
 
 	log.Printf("Starting web server %s:%d on %s", hostName, os.Getpid(), *addr)
-	log.Fatal(http.ListenAndServeTLS(*addr, *certFile, *keyFile, router))
+
+	tlsConfig := &tls.Config{
+		PreferServerCipherSuites: true,
+		// Only use curves which have assembly implementations
+		CurvePreferences: []tls.CurveID{
+			tls.CurveP256,
+			tls.X25519,
+		},
+	}
+
+	srv := &http.Server{
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 5 * time.Second,
+		TLSConfig:    tlsConfig,
+		Handler:      router,
+		Addr:         *addr,
+	}
+
+	log.Fatal(srv.ListenAndServeTLS(*certFile, *keyFile))
 }
