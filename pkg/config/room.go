@@ -13,11 +13,11 @@ const (
 	MaxMessageSize = 512
 
 	// PongWait set limit wait for receive messages from client
-	PongWait = 30 * time.Second
+	PongWait = 3 * time.Second
 
 	// PingPeriod set time to ping client
 	PingPeriod = PongWait * 9 / 10
 
 	// WriteWait set limit wait for writing to client
-	WriteWait = 5 * time.Second
+	WriteWait = 3 * time.Second
 )

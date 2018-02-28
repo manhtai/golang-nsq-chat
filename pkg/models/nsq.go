@@ -102,14 +102,11 @@ func subscribeToNsq(r *Room) error {
 }
 
 // SendMessageToTopic send Message to NSQ topic
-func SendMessageToTopic(topicName string, message *Message) error {
+func SendMessageToTopic(topicName string, message []byte) error {
 	httpclient := &http.Client{}
 	url := fmt.Sprintf("http://"+config.AddrNsqd+"/pub?topic=%s", topicName)
 
-	msgJSON, _ := json.Marshal(message)
-	nsqReq, _ := http.NewRequest("POST", url, bytes.NewBuffer(
-		[]byte(string(msgJSON))))
-
+	nsqReq, _ := http.NewRequest("POST", url, bytes.NewBuffer(message))
 	nsqResp, err := httpclient.Do(nsqReq)
 
 	if err != nil {

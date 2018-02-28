@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/manhtai/golang-nsq-chat/pkg/config"
 	"github.com/manhtai/golang-nsq-chat/pkg/controllers"
 	"github.com/manhtai/golang-nsq-chat/pkg/models"
 )
@@ -63,8 +63,8 @@ func main() {
 	}
 
 	srv := &http.Server{
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 5 * time.Second,
+		ReadTimeout:  config.ReadTimeout,
+		WriteTimeout: config.WriteTimeout,
 		TLSConfig:    tlsConfig,
 		Handler:      router,
 		Addr:         *addr,

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+	"log"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -35,17 +37,34 @@ func (c *Client) read() {
 	})
 
 	for {
-		var msg *Message
-		if err := c.socket.ReadJSON(&msg); err != nil {
-			return
+		msgType, msgData, err := c.socket.ReadMessage()
+
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway,
+				websocket.CloseAbnormalClosure) {
+				log.Printf("Error: %v", err)
+			}
+			break
 		}
 
-		msg.Name = c.user.Name
-		msg.Channel = c.channel
-		msg.User = c.user.ID
-		msg.Timestamp = time.Now()
+		if msgType != websocket.PongMessage {
+			var msg *Message
+			err = json.Unmarshal(msgData, &msg)
+			if err != nil {
+				log.Printf("Error: %v", err)
+				break
+			}
 
-		SendMessageToTopic(config.TopicName, msg)
+			msg.Name = c.user.Name
+			msg.Channel = c.channel
+			msg.User = c.user.ID
+			msg.Timestamp = time.Now()
+
+			msgJSON, _ := json.Marshal(msg)
+			msgData = []byte(string(msgJSON))
+		}
+
+		SendMessageToTopic(config.TopicName, msgData)
 	}
 }
 
