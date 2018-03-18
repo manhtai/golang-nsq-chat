@@ -20,4 +20,9 @@ const (
 
 	// WriteWait set limit wait for writing to client
 	WriteWait = 3 * time.Second
+
+	// ReadTimeout set wait time limit util we got request body
+	ReadTimeout = 5 * time.Second
+	// WriteTimeout set wait time limit util we got response
+	WriteTimeout = 5 * time.Second
 )

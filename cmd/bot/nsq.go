@@ -58,7 +58,7 @@ func handleMessage(msg *nsq.Message) error {
 			Timestamp: time.Now(),
 			Body:      "Hi human, improve me!",
 		}
-		msgJSON, _ := json.Marshal(message)
+		msgJSON, _ := json.Marshal(replyMessage)
 		err = models.SendMessageToTopic(config.TopicName, []byte(string(msgJSON)))
 	}
 	return err
